@@ -6,4 +6,5 @@ import org.springframework.data.repository.CrudRepository
 
 //interface WordRepository : CrudRepository<Wordcount, String> {
 interface WordRepository : JpaRepository<Wordcount, String> {
+    fun findTop100ByOrderByCntDesc(): List<Wordcount>
 }

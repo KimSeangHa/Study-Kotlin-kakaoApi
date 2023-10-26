@@ -1,6 +1,8 @@
 package com.example.study.blog.service
 
 import com.example.study.blog.dto.BlogDto
+import com.example.study.blog.entity.Wordcount
+import com.example.study.blog.repository.WordRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -9,7 +11,9 @@ import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.client.bodyToMono
 
 @Service
-class BlogService {
+class BlogService(
+    val wordRepository: WordRepository,
+) {
     @Value("\${REST_API_KEY}")
     lateinit var restApiKey: String
 
@@ -33,6 +37,16 @@ class BlogService {
             .retrieve()
             .bodyToMono<String>()
 
-        return response.block()
+        val result = response.block()
+
+        val lowQuery: String = blogDto.query!!.lowercase()
+        val word: Wordcount = wordRepository.findById(lowQuery).orElse(Wordcount(lowQuery))
+        word.cnt++
+
+        wordRepository.save(word)
+
+        return result
     }
+
+    fun searchWordRank(): List<Wordcount> = wordRepository.findTop100ByOrderByCntDesc()
 }
